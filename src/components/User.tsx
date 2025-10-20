@@ -1,9 +1,8 @@
 import axios, { AxiosError, type AxiosResponse } from "axios";
 import React, { useEffect, useState } from "react";
+import type { User } from "../interfaces/User";
 
-interface User  {
-    userName?:string
-}
+
 
 
 const User = ()=>{
