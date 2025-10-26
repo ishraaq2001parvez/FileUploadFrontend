@@ -13,8 +13,8 @@ const FileUpload = ()=>{
         let file= await fileHandle?.getFile(); 
         console.log("file is : ", file); 
         const MAX_SIZE= 5*1024*1024; 
-        let startIndex, endIndex; 
-        let blob = await file.slice(0, MAX_SIZE); 
+        let startIndex=0, endIndex=MAX_SIZE; 
+        let fileSize = file.size;  
         
         console.log(file.name.split(".").pop()); 
         // const arrayBuffer = await blob.arrayBuffer(); 
@@ -27,21 +27,26 @@ const FileUpload = ()=>{
                 throw new Error("Did not send");
                 
             }
-            const response= await axios.post(`http://localhost:8080/api/file`, blob,{
-                headers: {
-                    // ⭐️ Crucial: Set the Content-Type to tell the server it's raw binary data
-                    'Content-Type': 'application/octet-stream',
-                    
-                    // ⭐️ Transfer all metadata via custom headers
-                    'X-File-Name': file.name,
-                    'X-Chunk-Index': 0,
-                    'X-File-Ext': file.name.split(".").pop(),
-                    'X-Mime-Type' : file.type                    
-                    // You can add an optional header for size validation
-                    // 'Content-Length': chunk.size.toString(), 
-                },
-            })    ; 
-            console.log(response); 
+            while(endIndex<fileSize){
+                let blob = await file.slice(startIndex, endIndex); 
+                const response= await axios.post(`http://localhost:8080/api/file/create`, blob,{
+                    headers: {
+                        // ⭐️ Crucial: Set the Content-Type to tell the server it's raw binary data
+                        'Content-Type': 'application/octet-stream',
+                        
+                        // ⭐️ Transfer all metadata via custom headers
+                        'X-File-Name': file.name,
+                        'X-Chunk-Index': 0,
+                        'X-File-Ext': file.name.split(".").pop(),
+                        'X-Mime-Type' : file.type                    
+                        // You can add an optional header for size validation
+                        // 'Content-Length': chunk.size.toString(), 
+                    },
+                })    ; 
+                console.log(response); 
+                startIndex = endIndex; endIndex +=MAX_SIZE; 
+            }
+            
         }
         catch(e){
             console.error(e); 
@@ -53,10 +58,10 @@ const FileUpload = ()=>{
             let fileId = prompt("file id?", 1); 
             const fileInfoResponse = await axios.get(`http://localhost:8080/api/file/info/${fileId}`); 
             const fileData = fileInfoResponse.data; 
-
+            
             const correctFileName = fileData.fileName; 
             const mimeType = fileData.mimeType; 
-
+            
             console.log(fileData); 
             const fileHandle = await window.showSaveFilePicker({
                 suggestedName: correctFileName, 
@@ -69,11 +74,14 @@ const FileUpload = ()=>{
             }); 
             const writableStream = await fileHandle.createWritable(); 
             console.log(fileHandle); 
-            const chunkResponse = await axios.get(
-                `http://localhost:8080/api/chunk/1`,
-                {responseType : 'arraybuffer'} 
-            ); 
-            await writableStream.write(new Uint8Array(chunkResponse.data)); 
+            for(let i=1;i<=8;i++){
+                const chunkResponse = await axios.get(
+                    `http://localhost:8080/api/chunk/${i}`,
+                    {responseType : 'arraybuffer'} 
+                ); 
+                await writableStream.write(new Uint8Array(chunkResponse.data)); 
+            }
+            
             await writableStream.close(); 
             console.log(`✅ File downloaded with correct type: ${correctFileName} (${mimeType})`);
         }
@@ -84,9 +92,9 @@ const FileUpload = ()=>{
     
     return(
         <div>
-            
-            <button onClick={openFile}>Upload file</button>
-            <button onClick={fileDownload}>Download file</button>
+        
+        <button onClick={openFile}>Upload file</button>
+        <button onClick={fileDownload}>Download file</button>
         </div>
     )
 }
