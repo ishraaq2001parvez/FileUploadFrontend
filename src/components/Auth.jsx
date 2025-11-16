@@ -24,18 +24,65 @@ function Auth(){
         confirmPasswordError : ""
     }); 
 
-
-    const handleSubmit = async (e) =>{
+    const checkError = ()=>{
+        if(form.userName.length === 0){
+            setForm({...form, usernameError : "Username must not be empty"}); 
+            return false;
+        }
+        if(form.password.length <=5){
+            setForm({...form, passwordError : "Password must have more than 5 characters"}); 
+            return false;
+        }
         if(register){
-            console.log("register")
+            if(form.confirmPassword.length ===0){
+                setForm({...form, confirmPasswordError : "Please confirm your password"}); 
+                return false; 
+            }
+            if(form.confirmPassword !== form.password){
+                setForm({...form, confirmPasswordError : "Value must be equal to original password"}); 
+                return false;
+            }
         }
-        else{
-            const response = await axios.post("http://localhost:8080/api/user/login", {
-                userName : form.userName, 
-                password : form.password
-            }); 
-            console.log(response); 
+        return true; 
+    }
+    const handleSubmit = async (e) =>{
+        e.preventDefault(); 
+        if(!checkError()){
+            return ;
         }
+        if(register){
+            console.log("register"); 
+            try{
+                const response = await axios.post("http://localhost:8080/api/user/register", {
+                    userName : form.userName,
+                    password : form.password
+                }); 
+            }
+            catch(error){
+                if(error.response.status === 403){
+                    setForm({...form, usernameError : "username exists already"}); 
+                }
+                
+            }
+        }
+        else {
+            try {
+                const response = await axios.post("http://localhost:8080/api/user/login", {
+                    userName : form.userName, 
+                    password : form.password
+                }); 
+                console.log(response.data)    
+            } catch (error) {
+                if(error.response.status === 403){
+                    setForm({...form, passwordError : "Incorrect password"})
+                }
+                else if(error.response.status === 404){
+                    setForm({...form, usernameError : "No such useraname exists"})
+                }
+            }
+        }
+        
+        
     }
     /*
         return final authentication page
@@ -62,14 +109,24 @@ function Auth(){
                         <div className="col-span-2 mt-5">
                             
                             <TextInput placeholder="Your username" className={``} 
-                                onChange={(e) => setForm({...form, userName : e.target.value})}
+                                onChange={(e) => setForm({...form, 
+                                    userName : e.target.value, 
+                                    usernameError : "", 
+                                    passwordError : "", 
+                                    confirmPassword : ""
+                                })}
                                 error={`${form.usernameError}`}
                             ></TextInput>
                             <PasswordInput
                                 placeholder="Your password"
                                 className="mt-2"
                                 error={`${form.passwordError}`}
-                                onChange={(e)=> setForm({...form, password : e.target.value})}
+                                onChange={(e)=> setForm({...form, 
+                                    password : e.target.value, 
+                                    usernameError : "", 
+                                    passwordError : "", 
+                                    confirmPassword : ""
+                                })}
 
                             ></PasswordInput>
                             {register && (
@@ -77,6 +134,12 @@ function Auth(){
                                     placeholder="Confirm password"
                                     className="mt-2"
                                     error={`${form.confirmPasswordError}`}
+                                    onChange={(e)=> setForm({...form, 
+                                        confirmPassword : e.target.value, 
+                                        usernameError : "", 
+                                        passwordError : "", 
+                                        confirmPasswordError : ""
+                                    })}
                                 ></PasswordInput>
                             )}
                             <Button variant="filled" w={`100%`} className="mt-5"
