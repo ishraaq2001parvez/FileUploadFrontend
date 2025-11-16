@@ -91,7 +91,7 @@ function Auth(){
                     }); 
                     
                     setTimeout(() => {
-                        window.location.assign("/test")
+                        window.location.assign("/")
                     }, 3000);
                 }   
             } catch (error) {
