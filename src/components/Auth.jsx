@@ -1,7 +1,9 @@
 import { Box, Button, Center, Container, Input, PasswordInput, rem, SimpleGrid, Text, TextInput } from "@mantine/core";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { userLogin, userRegister } from "../axiosRequests/auth";
+import { setMe, setToken } from "../reducers/auth";
 
 function Auth(){
     const [loggedIn, setLoggedIn] = useState(false); 
@@ -9,7 +11,8 @@ function Auth(){
     const [register, setRegister] = useState(false); 
     const [showPassword, setShowPassword] =useState(false); 
 
-    const me = useSelector((state) => state.auth.userName); 
+    const me = useSelector((state) => state.auth); 
+    const dispatch = useDispatch(); 
     useEffect(()=>{
         console.log(me); 
     }, [me]); 
@@ -45,6 +48,11 @@ function Auth(){
         }
         return true; 
     }
+    const updateStore = ({userName, token})=> (dispatch) =>{
+        dispatch(setMe(userName)); 
+        dispatch(setToken(token)); 
+        console.log("dispatched")
+    }
     const handleSubmit = async (e) =>{
         e.preventDefault(); 
         if(!checkError()){
@@ -53,10 +61,15 @@ function Auth(){
         if(register){
             console.log("register"); 
             try{
-                const response = await axios.post("http://localhost:8080/api/user/register", {
-                    userName : form.userName,
-                    password : form.password
-                }); 
+                const response = await userRegister(form.userName, form.password); 
+                if(response.status==200){
+                    setLoggedIn(true); setRegister(true); 
+                    setTimeout(() => {
+                        console.log("redirecting");
+                        window.location.assign("http://localhost:5173/auth")
+                    }, 3000);
+                    
+                }
             }
             catch(error){
                 if(error.response.status === 403){
@@ -67,16 +80,27 @@ function Auth(){
         }
         else {
             try {
-                const response = await axios.post("http://localhost:8080/api/user/login", {
-                    userName : form.userName, 
-                    password : form.password
-                }); 
-                console.log(response.data)    
+                const response = await userLogin(form.userName, form.password); 
+                console.log(response);  
+                if(response.status===200){
+                    localStorage.setItem("token", response.data.second); 
+                    setLoggedIn(true); setRegister(false); 
+                    await updateStore({
+                        userName : response.data.first, 
+                        token : response.data.second 
+                    }); 
+                    
+                    setTimeout(() => {
+                        window.location.assign("/test")
+                    }, 3000);
+                }   
             } catch (error) {
-                if(error.response.status === 403){
+                console.error(error);
+                
+                if(error?.response.status === 403){
                     setForm({...form, passwordError : "Incorrect password"})
                 }
-                else if(error.response.status === 404){
+                else if(error?.response.status === 404){
                     setForm({...form, usernameError : "No such useraname exists"})
                 }
             }
@@ -90,9 +114,17 @@ function Auth(){
     return(
         <div className="w-screen h-screen place-items-center content-center">
             <div className="w-1/2 h-1/2 p-5 shadow-lg">
-                {loggedIn && <div>
-                    <p>You have been logged in, you should be redirected to the home page</p>
-                </div>}                
+                {loggedIn && (
+                    register ? (
+                        <div>
+                            <p className="text-lg text-black">Congratulations! you were registered. Please wait while we redirect you back to login ...</p>
+                        </div>
+                    ) : (
+                        <div>
+                            <p className="text-lg text-black">Congratulations! you have logged in. Please wait while we redirect you to the home page...</p>
+                        </div>
+                    )
+                )}                
 
                 {!loggedIn && (
                     <div className="grid grid-cols-2">
