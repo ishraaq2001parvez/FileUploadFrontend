@@ -4,3 +4,20 @@
 .center-text{
     text-align: center;
 }
+
+.main-container {
+    
+    /* width: auto; */
+    max-height: 100vh;
+    width: auto;
+    overflow-x: hidden;
+}
+
+.center-element-within-full {
+    top: 50%;
+    left: 50%;
+    position: fixed;
+    transform: translate(-50%, -50%);
+
+
+}

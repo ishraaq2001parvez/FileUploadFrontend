@@ -62,7 +62,8 @@ function Auth(){
             console.log("register"); 
             try{
                 const response = await userRegister(form.userName, form.password); 
-                if(response.status==200){
+                const {status} = response.data; 
+                if(status=="CREATED"){
                     setLoggedIn(true); setRegister(true); 
                     setTimeout(() => {
                         console.log("redirecting");
@@ -81,13 +82,15 @@ function Auth(){
         else {
             try {
                 const response = await userLogin(form.userName, form.password); 
-                console.log(response);  
-                if(response.status===200){
-                    localStorage.setItem("token", response.data.second); 
+                const {status} = response.data ;
+                console.log(response.headers);  
+
+                if(status==="FOUND"){
+                    window.localStorage.setItem("token", response.headers["x-jwt-token-response"] ); 
                     setLoggedIn(true); setRegister(false); 
                     await updateStore({
-                        userName : response.data.first, 
-                        token : response.data.second 
+                        userName : response.data?.user, 
+                        token : response.headers["x-jwt-token-response"] 
                     }); 
                     
                     setTimeout(() => {
@@ -113,7 +116,7 @@ function Auth(){
     */
     return(
         <div className="w-screen h-screen place-items-center content-center">
-            <div className="w-1/2 h-1/2 p-5 shadow-lg">
+            <div className="w-md min-w-md h-1/2 p-5 shadow-lg">
                 {loggedIn && (
                     register ? (
                         <div>
