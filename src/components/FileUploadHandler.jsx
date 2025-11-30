@@ -1,10 +1,13 @@
 import { Modal } from "@mantine/core";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { FileIcon } from "react-file-icon";
+import { fileUploadContext } from "../custom/contexts/fileUploadContext";
+import FolderCreate from "./FolderCreate";
+import FileUpload from "./FileUpload";
+import FolderUpload from "./FolderUpload";
 
-
-const FileUploadHandler = ({currentFileUploader, currentUser})=>{
-
+const FileUploadHandler = ()=>{
+    const {uploadType} = useContext(fileUploadContext) ;
     // set state for choosing files
     const [fileChosen, setFileChosen] = useState({
         file : null, 
@@ -14,68 +17,46 @@ const FileUploadHandler = ({currentFileUploader, currentUser})=>{
 
     const chooseFileToUpload = async (e)=>{
         e.stopPropagation(); 
-        const file = await currentFileUploader.getFileToUpload();
+        const file = await fileUploader.getFileToUpload();
         console.log(file)
         setFileChosen({...fileChosen, file : file}); 
     }
 
     const removeSelectedFile = async (e) =>{
         e.stopPropagation(); 
-        currentFileUploader.removeUploadedFile(); 
+        fileUploader.removeUploadedFile(); 
         setFileChosen({...fileChosen, file : null, fileError : ""}); 
     }
     
     const startUpload = async (e) =>{
         e.stopPropagation() ;
-        const fileStatus = await currentFileUploader.createFile() ;
+        const fileStatus = await fileUploader.createFile() ;
         setFileChosen({...fileChosen, status : fileStatus}) ;
     }
 
     const uploadChunk = async (e) =>{
         e.stopPropagation() ;
-        const uploadStatus = await currentFileUploader.uploadChunk() ;
+        const uploadStatus = await fileUploader.uploadChunk() ;
     }
 
-    return (
-        <div className="bg-gray-100 h-80 p-5">
-            <button className="p-2 bg-blue-300 text-white"
-                onClick={chooseFileToUpload}
-            >
-                Choose file
-            </button>
-            <p className="text-sm mb-10">
-                {`*File size must be <=2gb`}
-            </p>
-            {fileChosen.file && (
-                <div className="">
-                    <div className="flex flex-row px-5">
-                        <div className="w-10 h-10">
-                            <FileIcon extension={`${currentFileUploader.getFileExtension()}`}></FileIcon>
-                        </div>
-
-                        
-                        <div className="ml-auto">
-                            <p className="text-md">{`${currentFileUploader.getFileName()}`}</p>
-                            <p className="text-sm">
-                                {`${Math.round(currentFileUploader.getFileSize()/1024)} kb`}
-                            </p>
-                            <button 
-                                className="bg-red-300 p-2 mt-5 rounded-md"
-                                onClick={removeSelectedFile}    
-                            >
-                                
-                                    Remove file
-                            </button>
-                        </div>
-                    </div>
-                    
-                        
-                    
-
-                </div>
-            )}
+    if(uploadType==0){
+        return (
+            <div className="bg-gray-100 p-2">
+                <FolderCreate></FolderCreate>
+            </div>
+        )
+    } else if(uploadType === 1){
+        return (
+            <div className="bg-gray-100 p-2">
+                <FileUpload></FileUpload>
+            </div>
+        )
+    }
+    return(
+        <div className="bg-gray-100 p-2">
+            <FolderUpload></FolderUpload>
         </div>
-    ); 
+    )
 }
 
 export default FileUploadHandler ;

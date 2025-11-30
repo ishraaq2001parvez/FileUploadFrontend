@@ -1,29 +1,34 @@
-import { useContext, useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 import '@mantine/core/styles.css';
+import { useEffect, useState } from 'react';
+import './App.css';
 
-import FileUpload from './components/FileUpload'
-import { BrowserRouter, Link, Route, Router, Routes } from 'react-router-dom'
-import Home from './components/Home'
-import Auth from './components/Auth'
-import { MantineProvider } from '@mantine/core'
+import { MantineProvider } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { getMe } from './axiosRequests/auth';
-import { setMe } from './reducers/auth';
-import { checkJwtValid } from './custom/checkJwtValid';
-import ProtectedRoutes from './components/protectedRoutes';
+import Auth from './components/Auth';
+import Home from './components/Home';
 import NotLoggedIn from './components/NotLoggedIn';
+import ProtectedRoutes from './components/protectedRoutes';
+import { authContext } from './custom/contexts/authContext';
+import { checkJwtValid } from './custom/checkJwtValid';
+import { setMe } from './reducers/auth';
+import Search from './components/Search';
+import SearchResults from './components/SearchResults';
+import FileUploader from './custom/FileUploader';
+
+ 
+
 
 function App() {
     
     
+    
     const {currentUser} = useSelector((state) => state.auth); 
     const dispatch = useDispatch() ;
-    const [isAuthenticated, setAuthenticated] = useState(false) ;
-    const login = ()=> setAuthenticated(true); 
-    const logout = ()=> setAuthenticated(false); 
+    const [isAuthenticated, setAuthenticated] = useState(true) ;
+    const login = ()=> {setAuthenticated(true); }
+    const logout = ()=> {setAuthenticated(false); }
     const token = window.localStorage.getItem("token"); 
     // const token = "nb"
 
@@ -40,48 +45,67 @@ function App() {
     // check if jwt token is present and valid
     const fetchMe = async ()=>{
         
-        console.log('token :>> ', token);
+        // console.log('token :>> ', token);
         if(!token){
-            setAuthenticated(false); return ;
+            setAuthenticated(false); 
+            console.log("no token, please login")
+            return ;
         }
         if(!checkJwtValid(token)){
-            setAuthenticated(false); return ;
+            setAuthenticated(false); 
+            console.log("jwt expired")
+            return ;
         }
         // console.log(token); 
-        const {user, status} = (await getMe(token)).data; 
-        // console.log("fetched me"); 
-        setAuthenticated(true)
-        updateMetoStore(user);
-        console.log(user, status);
+        const {data} = await getMe(token); 
+        // console.log(data); 
+        setAuthenticated(true); 
+        updateMetoStore(data.user);
+        // console.log(data.user, data.status, isAuthenticated);
 
     }
     
     useEffect(()=>{
         if(!currentUser){
             fetchMe(); 
+            // setAuthenticated(true)
         }
     }, [token])
 
     
     return (
-        <MantineProvider>
-            <BrowserRouter>
-            <Routes>
-                <Route path="/auth" element={<Auth login={login} />}></Route>
-                <Route path='/' element={<NotLoggedIn/>}></Route>
-                <Route path='*' element={<NotLoggedIn/>}></Route>
-                <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
-                    <Route path="/home" element={
-                        <Home currentUser={currentUser} logout={logout}></Home>
-                    }></Route>
-                </Route>
-                <Route path={"/"} element={
-                    <Home currentUser={currentUser} logout={logout}></Home>
-                }></Route>
-            </Routes>
-                
-            </BrowserRouter>
-        </MantineProvider>
+        <authContext.Provider value={{currentUser, isAuthenticated, logout, setAuthenticated}}>
+            <MantineProvider>
+                <BrowserRouter>
+                <Routes>
+                    <Route element={
+                        <ProtectedRoutes
+                            currentUser={currentUser}
+                            logout={logout}
+                            isAuthenticated={isAuthenticated}
+                        ></ProtectedRoutes>
+                    }>
+                        <Route path="/home" element={
+                            <Home></Home>
+                        }></Route>
+                        <Route path="/search" element={
+                            <SearchResults></SearchResults>
+                        }></Route>
+                        <Route path={"/"} element={
+                            <Home currentUser={currentUser} logout={logout}></Home>
+                        }></Route>
+                    </Route>
+                    <Route path="/auth" element={<Auth login={login} />}></Route>
+                    <Route path='/' element={<NotLoggedIn/>}></Route>
+                    <Route path='*' element={<NotLoggedIn/>}></Route>
+                    
+                    
+                </Routes>
+                    
+                </BrowserRouter>
+            </MantineProvider>
+        </authContext.Provider>
+        
         
     )
 }

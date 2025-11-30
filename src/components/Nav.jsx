@@ -1,6 +1,5 @@
-import { Image, Input } from "@mantine/core";
+import { Image } from "@mantine/core";
 import Search from "./Search";
-import { useSelector } from "react-redux";
 
 function Nav({currentUser}){  
     // console.log(currentUser)  ;
@@ -11,7 +10,7 @@ function Nav({currentUser}){
     }
     return (
         
-        <div className="w-full  h-20 flex flex-row ">
+        <div className="w-full h-auto flex flex-row ">
             <div id="logo-nav" className="h-full w-1/10">
                 <Image src={`src/assets/logo.png`} h={`100%`} w={`auto`}/>
             </div>

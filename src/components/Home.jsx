@@ -1,21 +1,32 @@
-import { useDispatch, useSelector } from "react-redux";
-import Nav from "./Nav";
-import { getMe } from "../axiosRequests/auth";
-import { useEffect } from "react";
-import { setMe } from "../reducers/auth";
-import SideBar from "./SideBar";
-import MainContent from "./MainContent";
+import { Container } from "@mantine/core";
+import { useContext } from "react";
+import { authContext } from "../custom/contexts/authContext";
+import { modalContext } from "../custom/contexts/modalContext";
+import FileMenuContext from "./UploadMenu";
 
-function Home({currentUser, logout}){
+
+
+function Home(){
+    const {currentUser} = useContext(authContext);
+    const {open, close, setUploadType} = useContext(modalContext) ;
     
     return (
-        <div className="main-container bg-gray-100 flex flex-col">
-            <Nav currentUser={currentUser}></Nav>
-            <div className="flex-grow flex flex-row h-130">
-                <SideBar></SideBar>
-                <MainContent currentUser={currentUser}></MainContent>
-            </div>
-        </div>
+        <Container>
+            <FileMenuContext
+                position={`right-end`}
+                targetComponent={
+                    <button className="hover:cursor-pointer hover:bg-gray-100 rounded-lg p-2">
+                        <p className="text-4xl">
+                            My Drive
+                        </p>
+                    </button>
+                }
+                open={open}
+                setUploadType={setUploadType}
+            >
+
+            </FileMenuContext>
+        </Container>
     )
 }
 

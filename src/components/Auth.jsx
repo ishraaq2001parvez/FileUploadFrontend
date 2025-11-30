@@ -1,18 +1,17 @@
-import { Box, Button, Center, Container, Input, PasswordInput, rem, SimpleGrid, Text, TextInput } from "@mantine/core";
-import axios from "axios";
+import { Button, PasswordInput, TextInput } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { userLogin, userRegister } from "../axiosRequests/auth";
-import { setMe, setToken } from "../reducers/auth";
+import { setMe } from "../reducers/auth";
 
 function Auth(){
     const [loggedIn, setLoggedIn] = useState(false); 
     const [token, setToken] = useState(window.localStorage.getItem("token")); 
     const [register, setRegister] = useState(false); 
-    const [showPassword, setShowPassword] =useState(false); 
+    // const [showPassword, setShowPassword] =useState(false); 
 
     const me = useSelector((state) => state.auth); 
-    const dispatch = useDispatch(); 
+    // const dispatch = useDispatch(); 
     useEffect(()=>{
         console.log(me); 
     }, [me]); 
@@ -81,16 +80,17 @@ function Auth(){
         }
         else {
             try {
-                const response = await userLogin(form.userName, form.password); 
-                const {status} = response.data ;
+                const response = await userLogin(form.userName, form.password);
+                console.log('response :>> ', response); 
+                const {user, status, jwtToken} = response.data ;
                 console.log(response.headers);  
 
                 if(status==="FOUND"){
-                    window.localStorage.setItem("token", response.headers["x-jwt-token-response"] ); 
+                    window.localStorage.setItem("token", jwtToken ); 
                     setLoggedIn(true); setRegister(false); 
                     await updateStore({
-                        userName : response.data?.user, 
-                        token : response.headers["x-jwt-token-response"] 
+                        userName : user, 
+                        token : jwtToken
                     }); 
                     
                     setTimeout(() => {

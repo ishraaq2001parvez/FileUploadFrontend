@@ -1,6 +1,7 @@
 class FileUploader {
     MAX_SIZE = 2147483648 ;
     currentFile = null; 
+    currentDirectory = null ;
     CHUNK_SIZE = 5*1024*1024 ;
 
     // function to get max size allowed
@@ -8,7 +9,9 @@ class FileUploader {
         return this.MAX_SIZE ;
     }
     
-
+    getFolder = ()=>{
+        return this.currentDirectory ;
+    }
     // get current file object
     getFile = ()=>{
         return this.currentFile ;
@@ -54,6 +57,10 @@ class FileUploader {
 
     removeUploadedFile = ()=>{
         this.currentFile = null; 
+    }
+
+    createFile = async ()=>{
+        
     }
 
 
