@@ -1,8 +1,8 @@
 import axios from "axios"
 
-const BACKEND = "http://localhost:8080/api"
+const BACKEND = "http://localhost:8080/api/user"
 export const userRegister = async (userName, password) =>{
-    const response = await axios.post(`${BACKEND}/user/register`, {
+    const response = await axios.post(`${BACKEND}/register`, {
         userName : userName,
         password : password
     }); 
@@ -10,7 +10,7 @@ export const userRegister = async (userName, password) =>{
 }
 
 export const userLogin = async (userName, password) =>{
-    const response = await axios.post(`${BACKEND}/user/login`, {
+    const response = await axios.post(`${BACKEND}/login`, {
         userName : userName, 
         password : password
     }); 
@@ -18,7 +18,7 @@ export const userLogin = async (userName, password) =>{
 }
 
 export const getMe = async (token) =>{
-    const response = await axios.get(`${BACKEND}/user/me`, {
+    const response = await axios.get(`${BACKEND}/me`, {
         headers :{
             'Authorization' : `Bearer ${token}`
         }
