@@ -9,6 +9,7 @@ import { goBack, goInside, setDirectories } from "../reducers/contents";
 import { FaFolderPlus } from "react-icons/fa6";
 import { FaEllipsisH, FaFileUpload } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { useParams } from "react-router-dom";
 
 
 // directory component
@@ -40,8 +41,9 @@ const Directories = ({directories, goInside})=>{
     )
 }
 
-function Home(){
-    // console.log("home");
+const FolderView = ()=>{
+    const { folderId } = useParams(); 
+// console.log("home");
     // context definitions
     const {currentUser} = useContext(authContext);
     const {opened, open, close, setUploadType ,logout}= useContext(modalContext); 
@@ -170,6 +172,6 @@ function Home(){
             </div>
         </Container>
     )
-}
+}; 
 
-export default Home; 
+export default FolderView ;

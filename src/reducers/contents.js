@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 export const contentSlice= createSlice({
     name: "contents", 
     initialState : {
-        currentPath : [""], 
+        currentPath : [], 
         files : [], 
         directories: []
     }, 
@@ -23,5 +23,5 @@ export const contentSlice= createSlice({
     }
 }); 
 
-export const {setPath, setFiles, setDirectories} = contentSlice.actions; 
+export const {goInside, goBack, setFiles, setDirectories} = contentSlice.actions; 
 export default contentSlice; 

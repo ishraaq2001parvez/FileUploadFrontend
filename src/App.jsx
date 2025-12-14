@@ -16,6 +16,7 @@ import { setMe } from './reducers/auth';
 import Search from './components/Search';
 import SearchResults from './components/SearchResults';
 import FileUploader from './custom/FileUploader';
+import FolderView from './components/FolderView';
 
  
 
@@ -85,14 +86,14 @@ function App() {
                             isAuthenticated={isAuthenticated}
                         ></ProtectedRoutes>
                     }>
-                        <Route path="/home" element={
-                            <Home></Home>
+                        <Route path="/folder/:folderID" element={
+                            <FolderView></FolderView>
                         }></Route>
                         <Route path="/search" element={
                             <SearchResults></SearchResults>
                         }></Route>
                         <Route path={"/"} element={
-                            <Home currentUser={currentUser} logout={logout}></Home>
+                            <Home logout={logout}></Home>
                         }></Route>
                     </Route>
                     <Route path="/auth" element={<Auth login={login} />}></Route>
