@@ -86,7 +86,7 @@ function App() {
                             isAuthenticated={isAuthenticated}
                         ></ProtectedRoutes>
                     }>
-                        <Route path="/folder/:folderID" element={
+                        <Route path="/folder/:folderId" element={
                             <FolderView></FolderView>
                         }></Route>
                         <Route path="/search" element={

@@ -11,7 +11,7 @@ export const contentSlice= createSlice({
         goInside : (state, action) =>{
             state.currentPath = [...state.currentPath, action.payload] ;
         }, 
-        goBack : (state, action)=>{
+        goBack : (state)=>{
             state.currentPath = state.currentPath.slice(0,-1); 
         }, 
         setFiles : (state, action) =>{
@@ -19,7 +19,10 @@ export const contentSlice= createSlice({
         }, 
         setDirectories : (state, action) =>{
             state.directories = action.payload; 
-        }
+        }, 
+        addDirectory : (state, action) =>{
+            state.directories = [...state.directories, action.payload]
+        }, 
     }
 }); 
 

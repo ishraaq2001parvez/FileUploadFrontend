@@ -1,6 +1,6 @@
 import { AppShell, Modal } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { modalContext } from "../custom/contexts/modalContext";
 import UploadMenu from "./FileUploadHandler";
@@ -11,8 +11,18 @@ import { fileUploadContext } from "../custom/contexts/fileUploadContext";
 
 const MainLayout = ({currentUser, logout})=>{
     // file uploader; only one per browser
-    const fileUploader = new FileUploader() ;
+    const fileUploaderRef = useRef(null) ;
+    if(fileUploaderRef.current === null){
+        fileUploaderRef.current = new FileUploader() ;
+        // console.log("file uploader initialised") ;
+    }
 
+    const fileUploader = fileUploaderRef.current ;
+
+    const setWorkingDirectory = useCallback((directory) =>{
+        fileUploader.setCurrentDirectory(directory) ;
+        // console.log(fileUploader.getCurrentFolder()) ;
+    }, [fileUploader]) ;
     // console.log("hitting main lyout");
     // for global modal
     const [opened, {open, close}] = useDisclosure(false) ;
@@ -39,7 +49,10 @@ const MainLayout = ({currentUser, logout})=>{
                 ></SideBar>
             </AppShell.Navbar>
             <AppShell.Main>
-                <modalContext.Provider value={{opened, open, close, setUploadType ,logout}}>
+                <modalContext.Provider value={{
+                    opened, open, close, setUploadType ,logout,
+                    setWorkingDirectory
+                }}>
                     <Outlet></Outlet>
                 </modalContext.Provider>
                 <fileUploadContext.Provider value={{fileUploader, uploadType}}>

@@ -1,21 +1,22 @@
-import { Container, Table } from "@mantine/core";
+import { Container, Loader, Table } from "@mantine/core";
 import { useContext, useEffect, useState } from "react";
 import { authContext } from "../custom/contexts/authContext";
 import { modalContext } from "../custom/contexts/modalContext";
 import FileMenuContext from "./UploadMenu";
 import { useDispatch, useSelector } from "react-redux";
-import { loadHomeDir } from "../axiosRequests/homeLoad";
+import { loadContentsByParent } from "../axiosRequests/directory";
 import { goBack, goInside, setDirectories } from "../reducers/contents";
 import { FaFolderPlus } from "react-icons/fa6";
 import { FaEllipsisH, FaFileUpload } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 
 // directory component
-const Directory = ({directory, goInside}) =>{
+const Directory = ({directory, navigate}) =>{
     // console.log(directory)
     return (
-        <Table.Tr key={directory.id} onDoubleClick={()=> goInside(directory)}>
+        <Table.Tr key={directory.dir_id} onDoubleClick={()=> navigate(`/folder/${directory.dir_id}`)}>
             <Table.Td>
                 {directory.name}
             </Table.Td>
@@ -30,11 +31,11 @@ const Directory = ({directory, goInside}) =>{
     )
 }
 
-const Directories = ({directories, goInside})=>{
+const Directories = ({directories, navigate})=>{
     return (
         <Table.Tbody>
             {directories.map((directory, index) =>{
-                return <Directory directory={directory} key={index} goInside={goInside}></Directory>
+                return <Directory directory={directory} key={index} navigate={navigate}></Directory>
             })}
         </Table.Tbody>
     )
@@ -51,33 +52,23 @@ function Home(){
     // use selector defined
     const {currentPath, files, directories} = useSelector(state => state.contents);
     const dispatch = useDispatch() ; 
+    const navigate = useNavigate(); 
+
     // function to update directories to store
     const updateDirectories = (directories)=>{
         dispatch(setDirectories(directories)) ;
-    }
-    // function to go inside particular directory
-    const goInsideFolder = (directory)=>{
-        console.log(directory)
-        setCurrDir({
-            ...currDir, 
-            name : directory.name, 
-            id : directory.dir_id
-        }); 
-        dispatch(goInside(directory?.name)); 
-    }
-    const goToParent = ()=>{
-        dispatch(goBack()); 
     }
 
     // state definitions
     // get current directory for viewing
     const [currDir, setCurrDir] = useState({
-        name : currentUser?.userName, 
-        id : 0
+        name : currentUser?.username, 
+        parentId : -1,
+
     }); 
     // get the load status
     const [loadStatus, setLoadStatus] = useState({
-        // 0 -> loaded, 1->loading, 2->server_error, 2->not_found
+        // 0 -> loaded, 1->loading, 2->server_error, 3->not_found
         status : 1,
     }); 
     // get current selected directories
@@ -85,9 +76,12 @@ function Home(){
 
     // component function definitions
     // function to get directories in current parent
-    const getContents = async ()=>{
+    const getHomeContents = async ()=>{
         setLoadStatus({...loadStatus, status: 1}); 
-        const response = await loadHomeDir(
+        setTimeout(() => {
+            console.log("loading") ;
+        }, 10000);
+        const response = await loadContentsByParent(
             currentUser?.id, 
             currentPath.length==0?0:currDir.id
         ) ; 
@@ -103,6 +97,10 @@ function Home(){
             return ;
         }
         setLoadStatus({...loadStatus, status: 0}); 
+        setCurrDir({
+            name : currentUser?.username, 
+            parentId : -1
+        })
         updateDirectories(directories); 
     }; 
     
@@ -112,16 +110,16 @@ function Home(){
     // use effect definitions
     useEffect(()=>{
         // console.log('home effect ran')
-        getContents();
-    },[currentPath])
+        getHomeContents();
+    },[])
 
     
     
 
-    if(loadStatus.status!==0){
+    if(loadStatus.status===1){
         return (
-            <div className="">
-                Load error 
+            <div className="flex justify-center items-center">
+                <Loader color="blue"></Loader>
             </div>
         )
     }
@@ -136,8 +134,9 @@ function Home(){
                 
                 <div id="modifier-buttons" className="flex flex-row justify-between items-center text-lg hover:[&>*>*]:cursor-pointer">
                     <div className="flex-1">
-                        <button className="border border-solid border-black p-2" 
-                            onClick={goToParent}
+                        <button className="border border-solid border-black p-2"
+                            disabled = {currDir.parentId === -1}
+                            onClick={() => console.log("clicked home")}
                         >
                             <FaEllipsisH></FaEllipsisH>
                         </button>
@@ -163,7 +162,7 @@ function Home(){
                                 <Table.Th>Size</Table.Th>
                             </Table.Tr>
                         </Table.Thead>
-                        <Directories directories={directories} goInside={goInsideFolder}></Directories>
+                        <Directories directories={directories} navigate={navigate}></Directories>
                     </Table>
                 </div>
                 
