@@ -17,6 +17,8 @@ import Search from './components/Search';
 import SearchResults from './components/SearchResults';
 import FileUploader from './custom/FileUploader';
 import FolderView from './components/FolderView';
+import { Toaster } from 'react-hot-toast';
+import ForgotPassword from './components/ForgotPassword';
 
  
 
@@ -29,7 +31,12 @@ function App() {
     const dispatch = useDispatch() ;
     const [isAuthenticated, setAuthenticated] = useState(true) ;
     const login = ()=> {setAuthenticated(true); }
-    const logout = ()=> {setAuthenticated(false); }
+    const logout = ()=> {
+        window.localStorage.removeItem("token"); 
+        setAuthenticated(false); 
+        window.location.reload(); 
+        
+    }
     const token = window.localStorage.getItem("token"); 
     // const token = "nb"
 
@@ -75,37 +82,46 @@ function App() {
 
     
     return (
-        <authContext.Provider value={{currentUser, isAuthenticated, logout, setAuthenticated}}>
-            <MantineProvider>
-                <BrowserRouter>
-                <Routes>
-                    <Route element={
-                        <ProtectedRoutes
-                            currentUser={currentUser}
-                            logout={logout}
-                            isAuthenticated={isAuthenticated}
-                        ></ProtectedRoutes>
-                    }>
-                        <Route path="/folder/:folderId" element={
-                            <FolderView></FolderView>
-                        }></Route>
-                        <Route path="/search" element={
-                            <SearchResults></SearchResults>
-                        }></Route>
-                        <Route path={"/"} element={
-                            <Home logout={logout}></Home>
-                        }></Route>
-                    </Route>
-                    <Route path="/auth" element={<Auth login={login} />}></Route>
-                    <Route path='/' element={<NotLoggedIn/>}></Route>
-                    <Route path='*' element={<NotLoggedIn/>}></Route>
-                    
-                    
-                </Routes>
-                    
-                </BrowserRouter>
-            </MantineProvider>
-        </authContext.Provider>
+        <div>
+            <authContext.Provider value={{currentUser, isAuthenticated, logout, setAuthenticated}}>
+                <MantineProvider>
+                    <BrowserRouter>
+                    <Routes>
+                        <Route element={
+                            <ProtectedRoutes
+                                currentUser={currentUser}
+                                logout={logout}
+                                isAuthenticated={isAuthenticated}
+                            ></ProtectedRoutes>
+                        }>
+                            <Route path="/folder/:folderId" element={
+                                <FolderView></FolderView>
+                            }></Route>
+                            <Route path="/search" element={
+                                <SearchResults></SearchResults>
+                            }></Route>
+                            <Route path={"/"} element={
+                                <Home logout={logout}></Home>
+                            }></Route>
+                        </Route>
+                        <Route path="/auth" element={<Auth login={login} />}></Route>
+                        <Route path='/forgot_password' element={<ForgotPassword></ForgotPassword>}></Route>
+                        <Route path='/' element={<NotLoggedIn/>}></Route>
+                        <Route path='*' element={<NotLoggedIn/>}></Route>
+                        
+                        
+                    </Routes>
+                        
+                    </BrowserRouter>
+                </MantineProvider>
+            </authContext.Provider>
+            <Toaster 
+                position='bottom-center'
+            >
+
+            </Toaster>
+        </div>
+        
         
         
     )

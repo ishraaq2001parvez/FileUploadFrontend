@@ -1,8 +1,9 @@
-import { Button, PasswordInput, TextInput } from "@mantine/core";
+import { Button, Divider, PasswordInput, TextInput } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { userLogin, userRegister } from "../axiosRequests/auth";
 import { setMe } from "../reducers/auth";
+import { Link } from "react-router-dom";
 
 function Auth(){
     const [loggedIn, setLoggedIn] = useState(false); 
@@ -182,6 +183,10 @@ function Auth(){
                                 onClick={handleSubmit}
                             >
                                 {register ?"Register" : "Login"}
+                            </Button>
+                            <Divider className="my-2"></Divider>
+                            <Button className="">
+                                <Link to={"/check_auth"}>Forgot Username/Password</Link>
                             </Button>
                         </div>
 

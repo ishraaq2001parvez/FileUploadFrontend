@@ -3,7 +3,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { useCallback, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { modalContext } from "../custom/contexts/modalContext";
-import UploadMenu from "./FileUploadHandler";
+import FileUploadHandler from "./FileUploadHandler";
 import Nav from "./Nav";
 import SideBar from "./SideBar";
 import FileUploader from "../custom/FileUploader";
@@ -39,7 +39,7 @@ const MainLayout = ({currentUser, logout})=>{
 
         >
             <AppShell.Header >
-                <Nav currentUser={currentUser}></Nav>
+                <Nav currentUser={currentUser} logout={logout}></Nav>
             </AppShell.Header>
             <AppShell.Navbar>
                 <SideBar 
@@ -55,15 +55,16 @@ const MainLayout = ({currentUser, logout})=>{
                 }}>
                     <Outlet></Outlet>
                 </modalContext.Provider>
-                <fileUploadContext.Provider value={{fileUploader, uploadType}}>
+                <fileUploadContext.Provider value={{fileUploader, uploadType, close}}>
                     <Modal 
                         opened={opened} 
                         onClose={close} title={`${uploadType==0?"Create Folder":uploadType===1?"Upload File":"Upload Folder"}`} centered size={"70%"} 
                     >
-                        <UploadMenu
+                        <FileUploadHandler
                             currentUser={currentUser}
                             uploadType = {uploadType}
-                        ></UploadMenu>
+                            close = {close}
+                        ></FileUploadHandler>
                         
                     </Modal>
                 </fileUploadContext.Provider>

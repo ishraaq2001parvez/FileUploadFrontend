@@ -25,3 +25,12 @@ export const getMe = async (token) =>{
     }); 
     return response;
 }
+
+export const forgotPassword = async (userName, password) =>{
+    const response = await axios.put(`${BACKEND}/forgot_password`, {
+       userName  : userName, 
+       password : password
+    }); 
+    return response ;
+
+}

@@ -26,5 +26,5 @@ export const contentSlice= createSlice({
     }
 }); 
 
-export const {goInside, goBack, setFiles, setDirectories} = contentSlice.actions; 
+export const {goInside, goBack, setFiles, setDirectories, addDirectory} = contentSlice.actions; 
 export default contentSlice; 

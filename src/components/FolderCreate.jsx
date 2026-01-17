@@ -1,12 +1,18 @@
 import { Container, Input, InputWrapper, NativeSelect, TextInput } from "@mantine/core";
 import { useContext, useEffect, useState } from "react";
 import { fileUploadContext } from "../custom/contexts/fileUploadContext";
+import { showFailure, showSuccess } from "../custom/toaster";
+import { useDispatch } from "react-redux";
+import { addDirectory } from "../reducers/contents";
 
 
 const FolderCreate = ()=>{
     // console.log(folderId)
     // define file uploader object from main layout
-    const {fileUploader} = useContext(fileUploadContext) ;
+    const {fileUploader, close} = useContext(fileUploadContext) ;
+    
+    // dispatcher for dispatching requests
+    const dispatch = useDispatch(); 
     
     // state definitions for directory create input
     const [createdDirectory, setCreatedDirectory] = useState({
@@ -30,8 +36,15 @@ const FolderCreate = ()=>{
         ); 
         console.log(fileUploader.getDirectoryToCreate()) ;
         const response = await fileUploader.processDirectoryCreate(); 
-        
-        
+        console.log(response)
+        if(response.data.status === "CREATED"){
+            dispatch(addDirectory(response.data.directory)); 
+            close(); 
+            showSuccess(`Folder ${createdDirectory.directory_name} created successfully!`)
+        } else if(response.data.status === "NOT_ACCEPTABLE"){
+            close(); 
+            showFailure(`Folder ${createdDirectory.directory_name} already exists`); 
+        }
 
     }
 
