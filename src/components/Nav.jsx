@@ -35,9 +35,12 @@ function Nav({currentUser, logout}){
                         <Menu.Label>
                             Profile
                         </Menu.Label>
-                        <Menu.Item leftSection={<CgProfile></CgProfile>}>
-                            <Link to={"/profile/me"}>Profile</Link>
-                        </Menu.Item>
+                        <Link to={`/profile/me`}>
+                            <Menu.Item leftSection={<CgProfile></CgProfile>}>
+                                Profile
+                            </Menu.Item>
+                        </Link>
+                        
                         <Menu.Divider></Menu.Divider>
                         <Menu.Item leftSection={<CiLogout></CiLogout>}>                           
                             <button onClick={handleLogout}>

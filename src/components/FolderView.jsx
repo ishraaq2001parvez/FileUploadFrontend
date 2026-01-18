@@ -179,7 +179,15 @@ const FolderView = ()=>{
                         >
                             <FaFolderPlus></FaFolderPlus>
                         </button>
-                        <button className="border border-solid border-black p-2">
+                        <button className="border border-solid border-black p-2"
+                            onClick={(e)=>{
+                                e.preventDefault(); 
+                                setUploadType(1); 
+                                // console.log(currDir.directory)
+                                setWorkingDirectory(currDir.directory) ;
+                                open();
+                            }}
+                        >
                             <FaFileUpload></FaFileUpload>
                         </button>
                         <button className="border border-solid border-black p-2">

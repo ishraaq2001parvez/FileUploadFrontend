@@ -1,5 +1,4 @@
-import { Button, Group, PasswordInput, Stepper, Tabs, TextInput } from "@mantine/core";
-import { current } from "@reduxjs/toolkit";
+import { Button, PasswordInput, TextInput } from "@mantine/core";
 import { useState } from "react";
 import { forgotPassword } from "../axiosRequests/auth";
 

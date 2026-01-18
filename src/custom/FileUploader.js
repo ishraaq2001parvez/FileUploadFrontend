@@ -2,9 +2,9 @@ import { createDirectory } from "../axiosRequests/directory";
 
 class FileUploader {
     // constructor class
-    FileUploader = ()=>{
+    constructor(){
         console.log("constructor was called") ;
-        this._LIMITS = {
+        this.LIMITS = {
             MAX_SIZE : 2147483648 ,
             CHUNK_SIZE : 5*1024*1024
         }
@@ -12,13 +12,18 @@ class FileUploader {
         this.currentDirectory = null ;
         this.directoryToCreate = "" ;
         this.directoryToUpload = null ;
+        this.fileMetaData = null ;
 
     }
 
 
     // function to get max size allowed
     getMaxSize = ()=>{
-        return this._LIMITS.MAX_SIZE ;
+        return this.LIMITS.MAX_SIZE ;
+    }
+
+    getMaxChunkSize = ()=>{
+        return this.LIMITS.CHUNK_SIZE ;
     }
 
     // clear previous contents
@@ -28,7 +33,12 @@ class FileUploader {
         this.directoryToUpload = null ;
         this.directoryToCreate = "" ;
     }
-
+    // clear only uploadable contents
+    clearUploadableContents = ()=>{
+        this.fileToUpload = null ;
+        this.directoryToUpload = null ;
+        this.directoryToCreate  = "" ;
+    }
     // return the folder that we currently need to upload
     getCurrentFolder = ()=>{
         return this.currentDirectory ;
@@ -65,28 +75,48 @@ class FileUploader {
     }
     // get current file object
     getFile = ()=>{
-        return this.currentFile ;
+        return this.fileToUpload ;
     }
+    // set file to upload
+    setFileToUpload = (file)=>{
+        this.fileToUpload = file ;
+    }
+    // get file metadata
+    getFileMetaData = async ()=>{
+        const headerBlob = this.fileToUpload.slice(0, 8);
+        const footerBlob = this.fileToUpload.slice(
+            this.fileToUpload.size - 8, this.fileToUpload.size
+        ) ;
+        const headerBuffer = await headerBlob.arrayBuffer(); 
+        const footerBuffer = await footerBlob.arrayBuffer(); 
+        // 3. Convert Header to Hex String for the "Signature"
+        const signature = Array.from(new Uint8Array(headerBuffer))
+            .map(b => b.toString(16).padStart(2, '0').toUpperCase())
+            .join('');
 
-    getFileExtension = ()=>{
-        // console.log(this.currentFile.name.split("."))
-        return this.currentFile.name.split(".")[1];
-    }
+        
 
-    getFileName = ()=>{
-        return this.currentFile.name ;
-    }
+        return this.fileMetaData =  {
+            fileName        : this.fileToUpload.name,
+            mimeType        : this.fileToUpload.type, 
+            chunkCount      : Math.ceil(this.fileToUpload.size / this.getMaxChunkSize()), 
+            fileHeader      : new Uint8Array(headerBuffer), 
+            fileFooter      : new Uint8Array(footerBuffer), 
+            fileSignature   : signature,                 
+            extension       : this.fileToUpload.name.split(".").pop()
+        };
+        
 
-    getFileSize = ()=>{
-        return this.currentFile.size ;
     }
+    // send request for uploading
+    
     // function to check if file size is within limits
     validateSize = ()=>{
         try {
-            if(!this.currentFile){
+            if(!this.fileToUpload){
                 throw new Error("File has not been selected yet");
             }
-            return this.currentFile?.size <= this.getMaxSize() ;
+            return this.fileToUpload?.size <= this.getMaxSize() ;
         } catch (error) {
             console.log(error); 
         }
@@ -97,8 +127,8 @@ class FileUploader {
             console.log("file handler running"); 
             const [fileHandle] = await window.showOpenFilePicker() ;
             
-            this.currentFile = await fileHandle?.getFile() ;
-            return this.currentFile ;
+            this.fileToUpload = await fileHandle?.getFile() ;
+            return this.fileToUpload ;
         } catch (error) {
             console.log(error) ;
             throw new Error("error in file upload") ;
@@ -107,7 +137,7 @@ class FileUploader {
     }
 
     removeUploadedFile = ()=>{
-        this.currentFile = null; 
+        this.fileToUpload = null; 
     }
 
     createFile = async ()=>{
