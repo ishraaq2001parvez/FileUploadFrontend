@@ -8,19 +8,52 @@ const userAuthHeader = {
 }; 
 
 export const uploadMetadata = async (fileMetaData)=>{
-    const response = await axios.post(
-        `${BACKEND}/create`, fileMetaData, {
-            headers : userAuthHeader
-        }
-    ); 
-    return response ;
+    try {
+        const response = await axios.post(
+            `${BACKEND}/create`, fileMetaData, {
+                headers : userAuthHeader
+            }
+        ); 
+        return response ;
+    } catch (error) {
+        console.error(error); 
+        return  {
+            status : 1403
+        }; 
+    }
+    
 }
 
 export const uploadChunk = async (fileId, chunkData) => {
-    const response = await axios.post(
-        `${BACKEND}/upload/${fileId}`, chunkData, {
-            headers : userAuthHeader
-        }
-    ); 
-    return response ;
+    try {
+        const response = await axios.post(
+            `${BACKEND}/upload/${fileId}`, chunkData, {
+                headers : userAuthHeader
+            }
+        ); 
+        return response ;
+    } catch (error) {
+        console.error(error); 
+        return  {
+            status : 1403
+        }; 
+    }
+    
+}
+
+export const deleteFile = async (fileId) =>{
+    try {
+        const response =await axios.post(
+            `${BACKEND}/delete/${fileId}`, {
+                headers : userAuthHeader
+            }
+        ); 
+        return response ;    
+    } catch (error) {
+        console.error(error); 
+        return  {
+            status: 1403
+        }; 
+    }
+    
 }

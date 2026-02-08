@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import { fileUploadContext } from "../custom/contexts/fileUploadContext";
 import { Button, Container, FileInput, Progress } from "@mantine/core";
+import { showFailure, showSuccess } from "../custom/toaster";
 
 
 const FileUpload = ()=>{
@@ -41,10 +42,16 @@ const FileUpload = ()=>{
             ...uploadStatus, status : 1
         })
         console.log("proceedigng to upload") ;
+        await fileUploader.clearUploadableContents() ;
         await fileUploader.setFileToUpload(fileState.file) ;
         const metdata = await fileUploader.getFileMetaData(); 
         console.log(metdata) ;
-        await fileUploader.uploadFile(uploadStatus, setUploadStatus) ;
+        const response = await fileUploader.uploadFile(uploadStatus, setUploadStatus) ;
+        if(response.status === "CREATED") { 
+            showSuccess(`File ${fileState.file.name} uploaded successfully!`)
+        } else if(response.status === "SERVER_ERROR"){
+            showFailure("Upload Failed")
+        }
     }
     return (
         <Container className="p-5 h-60">
@@ -64,7 +71,9 @@ const FileUpload = ()=>{
                 <div id ="file_selected"
                     className="mx-auto border-black border-2 p-3"
                 >
-                    {`${fileState.file ? fileState.file.name : "No file selected"}`}
+                    {fileState.file ? `${fileState.file.name.substring(0, Math.min(
+                        fileState.file.name.length, 10
+                    ))}.${fileState.file.name.length>10 && ".."}${fileState.file.name.split('.').pop()}` : "No file selected"}
 
                 </div>
 

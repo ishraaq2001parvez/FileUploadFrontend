@@ -23,6 +23,9 @@ export const contentSlice= createSlice({
         addDirectory : (state, action) =>{
             state.directories = [...state.directories, action.payload]
         }, 
+        uploadFile : (state, action) => {
+            state.files = [...state.files, action.payload]
+        }
     }
 }); 
 

@@ -1,6 +1,6 @@
 import { data } from "react-router-dom";
 import { createDirectory } from "../axiosRequests/directory";
-import { uploadChunk, uploadMetadata } from "../axiosRequests/file";
+import { deleteFile, uploadChunk, uploadMetadata } from "../axiosRequests/file";
 
 class FileUploader {
     // constructor class
@@ -44,16 +44,19 @@ class FileUploader {
     }
     // clear previous contents
     clearContents = () =>{
-        this.fileToUpload = null; 
-        this.currentDirectory = null ;
-        this.directoryToUpload = null ;
-        this.directoryToCreate = "" ;
+        this.fileToUpload           = null; 
+        this.currentDirectory       = null ;
+        this.directoryToUpload      = null ;
+        this.directoryToCreate      = "" ;
     }
     // clear only uploadable contents
     clearUploadableContents = ()=>{
-        this.fileToUpload = null ;
-        this.directoryToUpload = null ;
-        this.directoryToCreate  = "" ;
+        this.fileToUpload           = null ;
+        this.fileMetaData           = null;
+        this.directoryToUpload      = null ;
+        this.directoryToCreate      = "" ;
+        this.uploadProgress         = 0; 
+        this.uploadMessage          = ""; 
     }
     // return the folder that we currently need to upload
     getCurrentFolder = ()=>{
@@ -102,6 +105,7 @@ class FileUploader {
     
     // set file to upload
     setFileToUpload = (file)=>{
+
         this.fileToUpload = file ;
     }
     // get file metadata
@@ -148,17 +152,23 @@ class FileUploader {
 
     // filler function to handle uploads
     uploadFile = async (uploadStatus, setUploadStatus)=>{
+        // upload metadata first
         const response = await this.uploadMetadata(); 
         let uploadedFile = null ;
         console.log(response); 
 
-        if(response.status === 403) {
+        // check if file metadata has been updated
+        if(response.status === 403 || response.status === 1403) {
             setUploadStatus({...uploadStatus, status : 3,message : "Server error ..."}); 
             console.log("server error"); 
-            return ;
+            return {
+                status : "SERVER_ERROR"
+            };
         } else if(response.data.status === "SERVER_ERROR") {
             setUploadStatus({...uploadStatus, status : 3,message : "Server error ..."}); 
-            return ;
+            return {
+                status : "SERVER_ERROR"
+            }; 
         } else if(response.data.status === "CREATED") {
             setUploadStatus({...uploadStatus,status : 1,  
                 message : "File created on server, beginning file upload"
@@ -166,11 +176,14 @@ class FileUploader {
             uploadedFile = response.data.file; 
         }
 
+
+        // start uploading chunks
         let startIndex =0, endIndex = this.LIMITS.CHUNK_SIZE, chunksUploaded = 0;
+        // keep count of chunks uploaded
         while(chunksUploaded < this.fileMetaData.chunkCount) {
             const response = await this.uploadSingleChunk(uploadedFile.file_id, startIndex, endIndex, chunksUploaded) ;
             console.log(response) ;
-            if(response.status === 403) {
+            if(response.status === 403 || response.status === 1403) {
                 setUploadStatus({
                     ...uploadStatus, status : 3, message : "File Upload failed due to server error"
                 }); 
@@ -182,12 +195,40 @@ class FileUploader {
                 break ;
             } else if(response.data.status === "CREATED") {
                 setUploadStatus({
-                    ...uploadStatus, status : 2, 
+                    ...uploadStatus, 
+                    status : 1,
                     progress : (chunksUploaded/this.fileMetaData.chunkCount) * 100, 
                     message : `Uploading ${chunksUploaded===this.fileMetaData.chunkCount ? "done!" : "..."}`
                 }); 
                 startIndex = endIndex, endIndex += this.LIMITS.CHUNK_SIZE, chunksUploaded+=1;
             }
+        }
+
+        // check if all chuks were uploaded
+        if(chunksUploaded === this.fileMetaData.chunkCount) {
+            setUploadStatus({
+                ...uploadStatus, 
+                status : 2, 
+                progress : 100, 
+                message : `Uploaded successfully!`
+            }); 
+            return {
+                status : "CREATED"
+            }
+        } else {
+            const response = await deleteFile(uploadedFile.id); 
+            if(response.status === 403 || response.status === 1403) {
+                setUploadStatus({
+                    ...uploadStatus,
+                    status : 3,
+                    progress : 100, 
+                    message : `Upload failed!`
+                }); 
+            }
+            return {
+                status : "SERVER_ERROR"
+            }
+            
         }
 
 
