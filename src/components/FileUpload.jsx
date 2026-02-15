@@ -2,11 +2,20 @@ import { useContext, useState } from "react";
 import { fileUploadContext } from "../custom/contexts/fileUploadContext";
 import { Button, Container, FileInput, Progress } from "@mantine/core";
 import { showFailure, showSuccess } from "../custom/toaster";
+import { useDispatch } from "react-redux";
+import { uploadFile} from "../reducers/contents";
 
 
 const FileUpload = ()=>{
     // context defintions
     const {fileUploader} = useContext(fileUploadContext) ;
+
+    const dispatch = useDispatch() ;
+
+    // dispatch function 
+    const postFileUploadStateUpdate = (file) =>{
+        dispatch(uploadFile(file)) ;
+    }
 
     // state definition for seelcting file
     const [fileState, setFileState] = useState({
@@ -48,6 +57,7 @@ const FileUpload = ()=>{
         console.log(metdata) ;
         const response = await fileUploader.uploadFile(uploadStatus, setUploadStatus) ;
         if(response.status === "CREATED") { 
+            postFileUploadStateUpdate(response.file)
             showSuccess(`File ${fileState.file.name} uploaded successfully!`)
         } else if(response.status === "SERVER_ERROR"){
             showFailure("Upload Failed")

@@ -5,7 +5,7 @@ import { modalContext } from "../custom/contexts/modalContext";
 import FileMenuContext from "./UploadMenu";
 import { useDispatch, useSelector } from "react-redux";
 import { loadContentsByParent } from "../axiosRequests/directory";
-import { goBack, goInside, setDirectories } from "../reducers/contents";
+import { goBack, goInside, setDirectories, setFiles } from "../reducers/contents";
 import { FaFolderPlus } from "react-icons/fa6";
 import { FaEllipsisH, FaFileUpload } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
@@ -17,8 +17,8 @@ const Directory = ({directory, navigate}) =>{
     // console.log(directory)
     return (
         <Table.Tr key={directory.dir_id} onDoubleClick={()=> navigate(`/folder/${directory.dir_id}`)}>
-            <Table.Td>
-                {directory.name}
+            <Table.Td maw={100}>
+                <span>📁</span> {directory.name}
             </Table.Td>
             <Table.Td>
                 {directory.creator.username}
@@ -31,9 +31,27 @@ const Directory = ({directory, navigate}) =>{
     )
 }
 
-const Directories = ({directories, navigate})=>{
-    // console.log(directories) ;
-    if(directories.length ===0 ){
+// react object for files
+const File =({file}) =>{
+    return (
+        <Table.Tr key={file.file_id}>
+            <Table.Td maw={100}>
+                {file.fileName}
+            </Table.Td>
+            <Table.Td>
+                {file.creator.username}
+            </Table.Td>
+            <Table.Td>
+
+            </Table.Td>
+            
+        </Table.Tr>
+    )
+}
+
+// create custom wrapper for contents
+const Contents = ({files, directories, navigate}) =>{
+    if(directories.length ===0  && files.length ===0){
         return (
             <Table.Tbody>
                 <Table.Tr>
@@ -43,16 +61,18 @@ const Directories = ({directories, navigate})=>{
                 </Table.Tr>
             </Table.Tbody>
         )
-    }
+    } 
     return (
         <Table.Tbody>
             {directories.map((directory, index) =>{
                 return <Directory directory={directory} key={index} navigate={navigate}></Directory>
             })}
+            {files.map((file, index) =>{
+                return <File file={file} key={index} navigate={navigate}></File>
+            })}
         </Table.Tbody>
     )
 }
-
 const FolderView = ()=>{
     const { folderId } = useParams(); 
     // console.log(folderId)
@@ -69,8 +89,12 @@ const FolderView = ()=>{
     const dispatch = useDispatch() ; 
     const navigate = useNavigate(); 
     // function to update directories to store
-    const updateDirectories = (directories)=>{
+    const loadDirectories = (directories)=>{
         dispatch(setDirectories(directories)) ;
+    }
+    // function to update files
+    const loadFiles =(files) =>{
+        dispatch(setFiles(files)) ;
     }
     // function to go inside directory
     const goInside = (dirName) =>{
@@ -104,24 +128,26 @@ const FolderView = ()=>{
             currentUser?.id, 
             folderId
         ) ; 
-        // console.log(response); 
+        console.log(response); 
         if(response.status === 500){
             // if internal server error
             setLoadStatus({...loadStatus, status : 2}); 
             return ;
         }
-        const {currentDirectory, directories, status} = response.data; 
+        const {currentDirectory, directories, files, status} = response.data; 
         if(status=="NOT_FOUND"){
             setLoadStatus({...loadStatus, status : 3}); 
             return ;
         }
-        setLoadStatus({...loadStatus, status: 0});
+        
         setCurrDir({
             ...currDir, 
             directory : currentDirectory, 
         }) 
         setWorkingDirectory(currDir.directory) ;
-        updateDirectories(directories); 
+        loadDirectories(directories); 
+        loadFiles(files) ;
+        setLoadStatus({...loadStatus, status: 0});
     }; 
     
 
@@ -204,7 +230,10 @@ const FolderView = ()=>{
                                 <Table.Th>Size</Table.Th>
                             </Table.Tr>
                         </Table.Thead>
-                        <Directories directories={directories} navigate={navigate}></Directories>
+                        <Contents 
+                            directories={directories} 
+                            files = {files}
+                            navigate={navigate}></Contents>
                     </Table>
                 </div>
                 

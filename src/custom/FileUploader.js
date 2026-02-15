@@ -213,6 +213,7 @@ class FileUploader {
                 message : `Uploaded successfully!`
             }); 
             return {
+                file : uploadedFile, 
                 status : "CREATED"
             }
         } else {
